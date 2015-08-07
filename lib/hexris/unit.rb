@@ -41,11 +41,15 @@ module Hexris
     end
 
     def pivot?(x, y)
-      [pivot["x"] + x_offset, pivot["y"] + y_offset] == [x, y]
+      px = pivot["x"] + x_offset + (y_offset.odd? && pivot["y"].odd? ? 1 : 0)
+      py = pivot["y"] + y_offset
+      [px, py] == [x, y]
     end
 
     def valid?(x_off: x_offset, y_off: y_offset, mems: members)
       cells(x_off: x_off, y_off: y_off, mems: mems).all? { |cell|
+        cell["x"].between?(0, board.width  - 1) &&
+        cell["y"].between?(0, board.height - 1) &&
         !board[cell["x"], cell["y"]]
       }
     end
@@ -71,9 +75,7 @@ module Hexris
     private
 
     def try_move(new_x_offset, new_y_offset)
-      if new_x_offset.between?(0, board.width  - 1) &&
-         new_y_offset.between?(0, board.height - 1) &&
-         valid?(x_off: new_x_offset, y_off: new_y_offset)
+      if valid?(x_off: new_x_offset, y_off: new_y_offset)
         @x_offset = new_x_offset
         @y_offset = new_y_offset
       else
@@ -95,6 +97,8 @@ module Hexris
         {"x" => x + (z - (z & 1)) / 2, "y" => z}
       }
 
+      # p members
+      # p new_members
       if valid?(mems: new_members)
         @members = new_members
       else
