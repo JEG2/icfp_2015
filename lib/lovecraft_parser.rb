@@ -14,7 +14,7 @@ class LovecraftParser
                                .gsub('”',"")
                               }
     end
-    sentences.map! {|x| x.lstrip}
+    sentences.map! {|x| x.strip}
     p sentences.size
     exclude_east_west(sentences).each {|s| puts "'" + s + "'"}
     p exclude_east_west(sentences).size
