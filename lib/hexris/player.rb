@@ -6,6 +6,7 @@ require_relative "unit"
 require_relative "rng"
 require_relative "scorer"
 require_relative "visualizer"
+require_relative "../anagrammatic"
 
 module Hexris
   class Player
@@ -135,15 +136,22 @@ module Hexris
         "problemId" => problem.id,
         "seed"      => seed,
         "tag"       => "manual:#{problem.id}:#{seed}:#{score.total}",
-        "solution"  => moves
+        "solution"  => Anagrammatic::Translator.new(moves).submittable_string
       }
     end
 
     def show_solutions
+      json = JSON.generate(solutions)
+
       puts
       puts "Solutions:"
       puts
-      puts JSON.generate(solutions)
+      puts json
+
+      File.write(
+        File.join(__dir__, *%W[.. .. solutions #{problem.id}.json]),
+        json
+      )
     end
   end
 end
