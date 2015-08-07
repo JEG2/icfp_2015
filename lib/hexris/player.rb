@@ -1,7 +1,10 @@
+require "json"
+
 require_relative "problem"
 require_relative "honeycomb"
 require_relative "unit"
 require_relative "rng"
+require_relative "scorer"
 require_relative "visualizer"
 
 module Hexris
@@ -12,16 +15,21 @@ module Hexris
 
     def initialize(json)
       @problem     = Problem.new(json)
+      @seed        = nil
       @rng         = nil
       @game_over   = nil
-      @pieces_left = problem.source_limit
+      @pieces_left = nil
+      @score       = nil
       @board       = nil
       @unit        = nil
-      @moves       = [ ]
+      @moves       = nil
+      @solutions   = [ ]
     end
 
-    attr_reader :problem, :rng, :pieces_left, :board, :unit, :moves
-    private     :problem, :rng, :pieces_left, :board, :unit, :moves
+    attr_reader :problem, :seed, :rng, :pieces_left, :score, :board, :unit,
+                :moves, :solutions
+    private     :problem, :seed, :rng, :pieces_left, :score, :board, :unit,
+                :moves, :solutions
 
     def play
       problem.seeds.each do |seed|
@@ -32,7 +40,9 @@ module Hexris
         end
         show_board
         show_score
+        record_solution
       end
+      show_solutions
     end
 
     private
@@ -41,10 +51,14 @@ module Hexris
       puts "Seed:  #{seed}"
       wait_for_enter
 
-      @rng       = RNG.new(seed)
-      @game_over = false
-      @board     = Honeycomb.new(problem.board)
-      @unit      = nil
+      @seed        = seed
+      @rng         = RNG.new(seed)
+      @game_over   = false
+      @pieces_left = problem.source_limit
+      @score       = Scorer.new
+      @board       = Honeycomb.new(problem.board)
+      @unit        = nil
+      @moves       = [ ]
 
       spawn_unit
     end
@@ -69,11 +83,11 @@ module Hexris
 
     def show_board
       print CLEAR
-      puts Visualizer.new(board: board, unit: unit)
+      puts  Visualizer.new(board: board, unit: unit)
     end
 
     def show_score
-      puts "Score:  FIXME"
+      puts "Score:  #{score.total}"
       wait_for_enter
     end
 
@@ -84,7 +98,7 @@ module Hexris
 
     def read_move
       loop do
-        print "Pieces left:  #{pieces_left}.  #{PROMPT}"
+        print "Pieces left:  #{pieces_left}.  Score:  #{score.total}.  #{PROMPT}"
 
         move = $stdin.gets.strip
 
@@ -105,7 +119,8 @@ module Hexris
 
       if unit.locked?
         board.fill(unit.cells)
-        board.clear_rows
+        cleared = board.clear_rows
+        score.score_move(unit.size, cleared)
         spawn_unit
       end
     end
@@ -113,6 +128,22 @@ module Hexris
     def wait_for_enter
       puts "Press enter to continue..."
       $stdin.gets
+    end
+
+    def record_solution
+      solutions << {
+        "problemId" => problem.id,
+        "seed"      => seed,
+        "tag"       => "manual:#{problem.id}:#{seed}:#{score.total}",
+        "solution"  => moves
+      }
+    end
+
+    def show_solutions
+      puts
+      puts "Solutions:"
+      puts
+      puts JSON.generate(solutions)
     end
   end
 end

@@ -13,6 +13,10 @@ module Hexris
     attr_reader :members, :pivot, :board, :x_offset, :y_offset
     private     :members, :pivot, :board, :x_offset, :y_offset
 
+    def size
+      members.size
+    end
+
     def locked?
       @locked
     end
