@@ -37,6 +37,6 @@ class LovecraftParser
        .reject { |line| line =~ /encoding=/}
        .reject { |line| line =~ /http:/}
        .reject { |line| line =~ /text-/}
-       .reject { |line| line =~ /[16789]/}
+       .reject { |line| line =~ /[6789]/}
   end
 end
