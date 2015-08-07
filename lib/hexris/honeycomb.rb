@@ -22,8 +22,9 @@ module Hexris
 
     def clear_rows
       cells.delete_if { |row| row.all? }
-      @cells =
-        Array.new(height - cells.size) { Array.new(width) { false } } + cells
+      deleted = height - cells.size
+      @cells  = Array.new(deleted) { Array.new(width) { false } } + cells
+      deleted
     end
   end
 end
