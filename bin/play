@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby -w
+
+require_relative "../lib/hexris/player"
+
+unless ARGV.first && File.exist?(ARGV.first)
+  abort "USAGE:  #{$PROGRAM_NAME} PROBLEM_FILE"
+end
+
+Hexris::Player.new(ARGF.read).play
