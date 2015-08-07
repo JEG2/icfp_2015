@@ -22,7 +22,7 @@ module Hexris
 
     def line_bonus(points)
       if @last_cleared > 1
-        ((@last_cleared -1 ) * points / 10).floor
+        ((@last_cleared - 1) * points / 10).floor
       else
         0
       end
