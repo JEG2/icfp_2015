@@ -23,6 +23,8 @@ class LovecraftParser
   def exclude_east_west(sentences)
     sentences.reject { |line| !!line[/[p'!.03][bcefy2]/] }
        .reject { |line| !!line[/[bcefy2][p'!.03]/] }
+       .reject { |line| !!line[/[drvzl][kstuwx]/] }
+       .reject { |line| !!line[/[kstuwx][drvzl]/] }
        .reject { |line| line.size > 75 || line.size < 3}
        .reject { |line| line =~ /^\S+$/}
        .reject { |line| line =~ /\/html/}

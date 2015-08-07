@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/lovecraft_parser.rb'
+
+LovecraftParser.new(ARGV[0])
