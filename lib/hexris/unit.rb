@@ -26,7 +26,7 @@ module Hexris
 
       lowest_x, highest_x = members.map { |member| member["x"] }.minmax
       x_size              = highest_x - lowest_x + 1
-      @x_offset           = ((board.width - x_size) / 2.0).round
+      @x_offset           = ((board.width - x_size) / 2).round
     end
 
     def cells(x_off: x_offset, y_off: y_offset, mems: members)
