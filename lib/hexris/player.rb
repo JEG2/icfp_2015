@@ -50,9 +50,6 @@ module Hexris
     private
 
     def setup_game(seed)
-      puts "Seed:  #{seed}"
-      wait_for_enter
-
       @seed        = seed
       @rng         = RNG.new(seed)
       @game_over   = false
@@ -104,7 +101,9 @@ module Hexris
 
         move = $stdin.gets.strip
 
-        exit if move == "q"
+        return undo if move == "u"
+        exit        if move == "q"
+
         move = MOVES.find { |m| m.downcase == move.downcase }
         if MOVES.include?(move)
           moves << move
@@ -128,6 +127,16 @@ module Hexris
     rescue
       puts "Illegal move blocked."
       wait_for_enter
+    end
+
+    def undo
+      old_moves = moves[0..-2]
+      setup_game(seed)
+      old_moves[0..-2].each do |move|
+        moves << move
+        make_move
+      end
+      moves << old_moves[-1]
     end
 
     def wait_for_enter
