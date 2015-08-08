@@ -21,7 +21,7 @@ module Hexris
 
     def units
       @units ||= details["units"].map { |unit|
-        {members: unit["members"], pivot: unit["pivot"]}
+        {initial_members: unit["members"], initial_pivot: unit["pivot"]}
       }
     end
 

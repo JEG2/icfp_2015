@@ -125,6 +125,9 @@ module Hexris
         score.score_move(unit.size, cleared)
         spawn_unit
       end
+    rescue
+      puts "Illegal move blocked."
+      wait_for_enter
     end
 
     def wait_for_enter

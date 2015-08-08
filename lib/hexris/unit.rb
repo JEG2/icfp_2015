@@ -1,29 +1,30 @@
 module Hexris
   class Unit
-    def initialize(members: , pivot: , board: )
+    def initialize(initial_members: , initial_pivot: , board: )
       y_offset            = 0
-      lowest_x, highest_x = members.map { |member| member["x"] }.minmax
+      lowest_x, highest_x = initial_members.map { |member| member["x"] }.minmax
       x_size              = highest_x - lowest_x + 1
       x_offset            = (board.width - x_size) / 2
 
-      @members = members.map { |member|
+      @members = initial_members.map { |member|
         Coordinates.offset_to_cube(
           member["x"] + x_offset,
           member["y"] + y_offset
         )
       }
       @pivot   = Coordinates.offset_to_cube(
-        pivot["x"] + x_offset,
-        pivot["y"] + y_offset
+        initial_pivot["x"] + x_offset,
+        initial_pivot["y"] + y_offset
       )
       @board   = board
       @locked  = false
+      @memory  = [[members.sort + [pivot]]]
     end
 
     attr_reader :members
 
-    attr_reader :pivot, :board
-    private     :pivot, :board
+    attr_reader :pivot, :board, :memory
+    private     :pivot, :board, :memory
 
     def size
       members.size
@@ -54,8 +55,8 @@ module Hexris
       case direction
       when "E"  then try_move(1, -1, 0)
       when "W"  then try_move(-1, 1, 0)
-      when "SE" then try_move(0, -1, 1)
-      when "SW" then try_move(-1, 0, 1)
+      when "SE" then try_move(0, -1, 1, clear_memory: true)
+      when "SW" then try_move(-1, 0, 1, clear_memory: true)
       end
     end
 
@@ -68,14 +69,21 @@ module Hexris
 
     private
 
-    def try_move(x_offset, y_offset, z_offset)
-      new_members = members.map { |x, y, z|
+    def try_move(x_offset, y_offset, z_offset, clear_memory: false)
+      new_members  = members.map { |x, y, z|
         [x + x_offset, y + y_offset, z + z_offset]
       }
+      new_pivot    =
+        [pivot[0] + x_offset, pivot[1] + y_offset, pivot[2] + z_offset]
+      new_position = [new_members.sort + [new_pivot]]
+      fail "Duplicate move" if memory.include?(new_position)
       if valid?(check: new_members)
         @members = new_members
-        @pivot   =
-          [pivot[0] + x_offset, pivot[1] + y_offset, pivot[2] + z_offset]
+        @pivot   = new_pivot
+        if clear_memory
+          @memory.clear
+        end
+        @memory << new_position
       else
         @locked = true
       end
@@ -92,8 +100,11 @@ module Hexris
 
         [to[0] + pivot[0], to[1] + pivot[1], to[2] + pivot[2]]
       }
+      new_position = [new_members.sort + [pivot]]
+      fail "Duplicate move" if memory.include?(new_position)
       if valid?(check: new_members)
         @members = new_members
+        @memory << new_position
       else
         @locked = true
       end
