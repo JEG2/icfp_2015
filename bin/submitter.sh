@@ -12,6 +12,8 @@ then
 fi
 
 
-set API_TOKEN=ag92eYhR22An9vEip08Za6VFZZ3ToZRYyw6jN/5nUYo=
+API_TOKEN=ag92eYhR22An9vEip08Za6VFZZ3ToZRYyw6jN/5nUYo=
 
-curl --user :$API_TOKEN -X POST -H "Content-Type: application/json" -d "$1" https://davar.icfpcontest.org/teams/145/solutions
+cat $1
+
+curl --user :$API_TOKEN -X POST -H "Content-Type: application/json" -d @"$1" https://davar.icfpcontest.org/teams/145/solutions
