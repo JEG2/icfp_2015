@@ -17,18 +17,15 @@ module Anagrammatic
       @commands = commands
     end
 
-    def sample
-      commands.map do |command|
-        SUBSTITUTIONS[command.upcase]
-      end
+    def submittable_string
+      Anagrammatic.interpolate_powerphrases!(default_translation)
     end
 
-    def submittable_string
+    def default_translation
       commands.map do |command|
         SUBSTITUTIONS[command.upcase].first
       end.join
     end
 
   end
-
 end
