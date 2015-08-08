@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 
 phrase = ARGV[0].downcase.chars
 
