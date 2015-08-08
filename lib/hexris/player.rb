@@ -6,6 +6,7 @@ require_relative "unit"
 require_relative "rng"
 require_relative "scorer"
 require_relative "visualizer"
+require_relative "coordinates"
 require_relative "../anagrammatic"
 
 module Hexris
@@ -68,7 +69,7 @@ module Hexris
       if (@pieces_left -= 1) > 0
         @unit = Unit.new(
           problem.units[rng.succ % problem.units.size].merge(board: board)
-        ).tap(&:spawn)
+        )
         unless unit.valid?
           @unit      = nil
           @game_over = true
@@ -119,7 +120,7 @@ module Hexris
       end
 
       if unit.locked?
-        board.fill(unit.cells)
+        board.fill(unit.members)
         cleared = board.clear_rows
         score.score_move(unit.size, cleared)
         spawn_unit
