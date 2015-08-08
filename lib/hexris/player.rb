@@ -74,6 +74,8 @@ module Hexris
     end
 
     def play_opening
+      return unless opening
+
       opening.split(" ").each do |move|
         moves << move
         make_move
