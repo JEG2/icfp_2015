@@ -1,13 +1,14 @@
 require_relative 'anagrammatic/translator'
 require_relative 'anagrammatic/phrase'
+require_relative 'constants'
 
 module Anagrammatic
 
-  PHRASES = [ "ei!" ]
-    .map { |phrase| Phrase.new(phrase)  }
+  PHRASES = POWER_WORDS
+    .map { |phrase| Phrase.new(phrase) }
 
   def self.interpolate_powerphrases!(string)
-    PHRASES.each { |t| t.interpolate(string) }
+    PHRASES.each { |phrase| phrase.interpolate(string) }
     string
   end
 
