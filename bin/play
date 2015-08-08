@@ -2,8 +2,13 @@
 
 require_relative "../lib/hexris/player"
 
+opening = nil
+if (i = ARGV.index("-o"))
+  ARGV.delete_at(i)
+  opening = ARGV.delete_at(i)
+end
 unless ARGV.first && File.exist?(ARGV.first)
   abort "USAGE:  #{$PROGRAM_NAME} PROBLEM_FILE"
 end
 
-Hexris::Player.new(ARGF.read).play
+Hexris::Player.new(json: ARGF.read, opening: opening).play
