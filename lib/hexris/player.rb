@@ -1,4 +1,5 @@
 require "json"
+require "io/console"
 
 require_relative "problem"
 require_relative "honeycomb"
@@ -13,7 +14,15 @@ module Hexris
   class Player
     CLEAR  = "\e[2J"
     MOVES  = %w[E W SE SW c cc]
-    PROMPT = [MOVES[0..-2].join(", "), MOVES[-1]].join(" or ") + "?  "
+    KEYS   = {
+      "e" => "E",
+      "q" => "W",
+      "d" => "SE",
+      "a" => "SW",
+      "j" => "c",
+      "k" => "cc"
+    }
+    PROMPT = KEYS.map { |k, m| "#{k}(#{m})" }.join(", ") + ", u, or x?  "
 
     def initialize(json)
       @problem     = Problem.new(json)
@@ -91,7 +100,7 @@ module Hexris
     end
 
     def handle_move
-      read_move
+      read_move &&
       make_move
     end
 
@@ -99,17 +108,25 @@ module Hexris
       loop do
         print "Pieces left:  #{pieces_left}.  Score:  #{score.total}.  #{PROMPT}"
 
-        move = $stdin.gets.strip
+        move = $stdin.getch
+        puts
 
-        return undo if move == "u"
-        exit        if move == "q"
+        if move == "u"
+          undo
+          return false
+        end
+        if move == "x" || move == "\u0003"
+          quit
+          return false
+        end
 
-        move = MOVES.find { |m| m.downcase == move.downcase }
+        move = KEYS[move]
         if MOVES.include?(move)
           moves << move
           break
         end
       end
+      true
     end
 
     def make_move
@@ -132,11 +149,14 @@ module Hexris
     def undo
       old_moves = moves[0..-2]
       setup_game(seed)
-      old_moves[0..-2].each do |move|
+      old_moves.each do |move|
         moves << move
         make_move
       end
-      moves << old_moves[-1]
+    end
+
+    def quit
+      @game_over = true
     end
 
     def wait_for_enter
