@@ -2,12 +2,8 @@ require "json"
 require "io/console"
 
 require_relative "problem"
-require_relative "honeycomb"
-require_relative "unit"
-require_relative "rng"
-require_relative "scorer"
+require_relative "game"
 require_relative "visualizer"
-require_relative "coordinates"
 require_relative "../anagrammatic"
 
 module Hexris
@@ -25,23 +21,14 @@ module Hexris
     PROMPT = KEYS.map { |k, m| "#{k}(#{m})" }.join(", ") + ", u, s, or x?  "
 
     def initialize(json: , opening: nil)
-      @problem     = Problem.new(json)
-      @opening     = opening
-      @seed        = nil
-      @rng         = nil
-      @game_over   = nil
-      @pieces_left = nil
-      @score       = nil
-      @board       = nil
-      @unit        = nil
-      @moves       = nil
-      @solutions   = [ ]
+      @problem   = Problem.new(json)
+      @opening   = opening
+      @game      = nil
+      @solutions = [ ]
     end
 
-    attr_reader :problem, :opening, :seed, :rng, :pieces_left, :score, :board,
-                :unit, :moves, :solutions
-    private     :problem, :opening, :seed, :rng, :pieces_left, :score, :board,
-                :unit, :moves, :solutions
+    attr_reader :problem, :opening, :game, :solutions
+    private     :problem, :opening, :game, :solutions
 
     def play
       problem.seeds.each do |seed|
@@ -61,63 +48,40 @@ module Hexris
     private
 
     def setup_game(seed)
-      @seed        = seed
-      @rng         = RNG.new(seed)
-      @game_over   = false
-      @pieces_left = problem.source_limit
-      @score       = Scorer.new
-      @board       = Honeycomb.new(problem.board)
-      @unit        = nil
-      @moves       = [ ]
-
-      spawn_unit
+      @game = Game.new(problem: problem, seed: seed)
     end
 
     def play_opening
       return unless opening
 
       opening.split(" ").each do |move|
-        moves << move
-        make_move
-      end
-    end
-
-    def spawn_unit
-      if (@pieces_left -= 1) > 0
-        @unit = Unit.new(
-          problem.units[rng.succ % problem.units.size].merge(board: board)
-        )
-        unless unit.valid?
-          @unit      = nil
-          @game_over = true
-        end
-      else
-        @game_over = true
+        make_move(move)
       end
     end
 
     def game_over?
-      @game_over
+      game.game_over?
     end
 
     def show_board
       print CLEAR
-      puts  Visualizer.new(board: board, unit: unit)
+      puts  Visualizer.new(board: game.board, unit: game.unit)
     end
 
     def show_score
-      puts "Score:  #{score.total}"
+      puts "Score:  #{game.score.total}"
       wait_for_enter
     end
 
     def handle_move
-      read_move &&
-      make_move
+      move = read_move
+      make_move(move) if move
     end
 
     def read_move
       loop do
-        print "Pieces left:  #{pieces_left}.  Score:  #{score.total}.  #{PROMPT}"
+        print "Pieces left:  #{game.pieces_left}.  " +
+              "Score:  #{game.score.total}.  #{PROMPT}"
 
         move = $stdin.getch
         puts
@@ -125,58 +89,40 @@ module Hexris
         case move
         when "u"
           undo
-          return false
+          return nil
         when "s"
           show_moves
-          return false
+          return nil
         when "x", "\u0003"
-          quit
-          return false
+          game.quit
+          return nil
         end
 
         move = KEYS[move]
         if MOVES.include?(move)
-          moves << move
-          break
+          return move
         end
       end
-      true
     end
 
-    def make_move
-      case moves.last
-      when /\AS?[EW]\z/ then unit.move(moves.last)
-      else                   unit.rotate(moves.last)
-      end
-
-      if unit.locked?
-        board.fill(unit.members)
-        cleared = board.clear_rows
-        score.score_move(unit.size, cleared)
-        spawn_unit
-      end
+    def make_move(move)
+      game.make_move(move)
     rescue
-      moves.pop
       puts "Illegal move blocked."
       wait_for_enter
     end
 
     def undo
-      old_moves = moves[0..-2]
-      setup_game(seed)
+      old_moves = game.moves[0..-2]
+      setup_game(game.seed)
       old_moves.each do |move|
-        moves << move
-        make_move
+        make_move(move)
       end
     end
 
     def show_moves
-      puts moves.join(" ")
+      puts game.moves.join(" ")
       wait_for_enter
-    end
-
-    def quit
-      @game_over = true
     end
 
     def wait_for_enter
@@ -187,9 +133,11 @@ module Hexris
     def record_solution
       solutions << {
         "problemId" => problem.id,
-        "seed"      => seed,
-        "tag"       => "manual:#{problem.id}:#{seed}:#{score.total}",
-        "solution"  => Anagrammatic::Translator.new(moves).submittable_string
+        "seed"      => game.seed,
+        "tag"       => "manual:#{problem.id}:#{game.seed}:#{game.score.total}",
+        "solution"  => Anagrammatic::Translator.new(
+          game.moves
+        ).submittable_string
       }
     end
 
