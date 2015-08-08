@@ -156,6 +156,7 @@ module Hexris
         spawn_unit
       end
     rescue
+      moves.pop
       puts "Illegal move blocked."
       wait_for_enter
     end
