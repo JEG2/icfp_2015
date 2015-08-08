@@ -22,10 +22,11 @@ module Hexris
       "j" => "c",
       "k" => "cc"
     }
-    PROMPT = KEYS.map { |k, m| "#{k}(#{m})" }.join(", ") + ", u, or x?  "
+    PROMPT = KEYS.map { |k, m| "#{k}(#{m})" }.join(", ") + ", u, s, or x?  "
 
-    def initialize(json)
+    def initialize(json: , opening: nil)
       @problem     = Problem.new(json)
+      @opening     = opening
       @seed        = nil
       @rng         = nil
       @game_over   = nil
@@ -37,14 +38,15 @@ module Hexris
       @solutions   = [ ]
     end
 
-    attr_reader :problem, :seed, :rng, :pieces_left, :score, :board, :unit,
-                :moves, :solutions
-    private     :problem, :seed, :rng, :pieces_left, :score, :board, :unit,
-                :moves, :solutions
+    attr_reader :problem, :opening, :seed, :rng, :pieces_left, :score, :board,
+                :unit, :moves, :solutions
+    private     :problem, :opening, :seed, :rng, :pieces_left, :score, :board,
+                :unit, :moves, :solutions
 
     def play
       problem.seeds.each do |seed|
         setup_game(seed)
+        play_opening
         until game_over?
           show_board
           handle_move
@@ -69,6 +71,13 @@ module Hexris
       @moves       = [ ]
 
       spawn_unit
+    end
+
+    def play_opening
+      opening.split(" ").each do |move|
+        moves << move
+        make_move
+      end
     end
 
     def spawn_unit
@@ -111,11 +120,14 @@ module Hexris
         move = $stdin.getch
         puts
 
-        if move == "u"
+        case move
+        when "u"
           undo
           return false
-        end
-        if move == "x" || move == "\u0003"
+        when "s"
+          show_moves
+          return false
+        when "x", "\u0003"
           quit
           return false
         end
@@ -153,6 +165,11 @@ module Hexris
         moves << move
         make_move
       end
+    end
+
+    def show_moves
+      puts moves.join(" ")
+      wait_for_enter
     end
 
     def quit
