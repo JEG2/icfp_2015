@@ -25,6 +25,9 @@ module Hexris
     end
 
     def build_edges_heat_map
+      densities = Hash.new { |totals, y|
+        totals[y] = game.board.row(y).count { |cell| !cell }
+      }
       game.board.height.times do |y|
         game.board.width.times do |x|
           xyz = Coordinates.offset_to_cube(x, y)
@@ -32,16 +35,16 @@ module Hexris
           next if game.board[xyz]
 
           score = neighbors(x, y).size + (game.board.height - (y + 1)) * 6
-          radiate(x, y, score)
+          radiate(x, y, score, densities)
         end
       end
     end
 
-    def radiate(x, y, score)
+    def radiate(x, y, score, densities)
       q = [{x: x, y: y, score: score}]
       while (mark = q.pop)
-        xyz = Coordinates.offset_to_cube(mark[:x], mark[:y])
-        score = mark[:score] + game.board.row(mark[:y]).count { |cell| !cell }
+        xyz   = Coordinates.offset_to_cube(mark[:x], mark[:y])
+        score = mark[:score] + densities[mark[:y]]
         if score < heat_map[xyz]
           heat_map[xyz] = score
           neighbors(mark[:x], mark[:y]).each do |x, y|
