@@ -4,7 +4,7 @@ module Hexris
 
     def initialize(game)
       @game          = game
-      @default_score = game.board.height * 6 + 6
+      @default_score = game.board.height * 6 + 6 + game.board.width
       @heat_map      = Hash.new(default_score)
     end
 
@@ -24,23 +24,6 @@ module Hexris
       # show_heat_map
     end
 
-    def build_row_density_heap_map
-      if board_empty?
-        radiate(0, game.board.height, -1)
-      else
-        game.board.height.times do |y|
-          game.board.width.times do |x|
-            xyz = Coordinates.offset_to_cube(x, y)
-
-            next if game.board[xyz]
-
-            score = score_cell(x, y)
-            radiate(x, y, score)
-          end
-        end
-      end
-    end
-
     def build_edges_heat_map
       game.board.height.times do |y|
         game.board.width.times do |x|
@@ -54,16 +37,13 @@ module Hexris
       end
     end
 
-    def score_cell(x, y)
-      default_score - game.board.row(y).count(&:itself) * game.board.height - 1
-    end
-
     def radiate(x, y, score)
       q = [{x: x, y: y, score: score}]
       while (mark = q.pop)
         xyz = Coordinates.offset_to_cube(mark[:x], mark[:y])
-        if heat_map[xyz] > mark[:score]
-          heat_map[xyz] = mark[:score]
+        score = mark[:score] + game.board.row(mark[:y]).count { |cell| !cell }
+        if score < heat_map[xyz]
+          heat_map[xyz] = score
           neighbors(mark[:x], mark[:y]).each do |x, y|
             q << {x: x, y: y, score: mark[:score] + 1}
           end
