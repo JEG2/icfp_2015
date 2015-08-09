@@ -21,6 +21,10 @@ module Hexris
       @memory  = [[members.sort + [pivot]]]
     end
 
+    def initialize_copy(other)
+      @memory = @memory.dup
+    end
+
     attr_reader :members
 
     attr_reader :pivot, :board, :memory
@@ -49,6 +53,15 @@ module Hexris
         y.between?(0, board.height - 1) &&
         !board[member]
       }
+    end
+
+    def move_or_rotate(move)
+      case move
+      when "E", "W", "SE", "SW"
+        move(move)
+      when "c", "cc"
+        rotate(move)
+      end
     end
 
     def move(direction)
