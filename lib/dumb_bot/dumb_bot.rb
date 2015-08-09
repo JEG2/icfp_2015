@@ -9,11 +9,13 @@ module DumbBot
   class DumbBot
 
     CLEAR  = "\e[2J"
-    def initialize(json: )
-      @local_power_words = POWER_WORDS + ["a"]
+    def initialize(json:, pw: POWER_WORDS)
+      @local_power_words = pw + ["a"]
       @problem   = Hexris::Problem.new(json)
       @game      = nil
       @solutions = [ ]
+      @power_word_used = Hash.new(false)
+      @power_word_used['a'] = true
       @power_word_value = Hash.new(300)
     end
 
@@ -21,7 +23,8 @@ module DumbBot
 
     def play
       problem.seeds.each do |seed|
-        @power_word_value = Hash.new(300)
+        @power_word_used = Hash.new(false)
+        @power_word_used['a'] = true
         setup_game(seed)
         @heat_mapper = Hexris::AI.new(@game)
         until game_over?
@@ -82,6 +85,7 @@ module DumbBot
         else
           @power_word_value[word] = word.length
           apply_word(word)
+          @power_word_used[word] = true
         end
       end
     end
@@ -113,22 +117,24 @@ module DumbBot
 
     def locks?(moves)
       temp_game = Marshal.load(Marshal.dump(@game))
-      moves.any? do |move|
+      unit = temp_game.unit.object_id
+      moves.none? do |move|
         temp_game.make_move(move)
-        break false if temp_game.game_over?
-        temp_game.unit.locked?
+        break true if temp_game.game_over?
+        unit == temp_game.unit.object_id
       end
     end
 
     def try_words(this_game: @game)
       @local_power_words.max_by do |power_word|
-        @power_word_value['a'] = 0
         moves = pw_to_moves(power_word)
         if moves_successful?(moves)
-          no_lock_modifier = 0 #locks?(moves) ? 0 : 300
-          p power_word
-          p no_lock_modifier
-          p @power_word_value[power_word] =  @power_word_value[power_word] + power_word.length + no_lock_modifier
+          #no_lock_modifier = locks?(moves) ? 0 : 300
+          no_lock_modifier = 0
+          already_used = @power_word_used[power_word] ? 0 : 300
+          @power_word_value[power_word] =  already_used + power_word.length + no_lock_modifier
+          #@power_word_value['a'] = 0
+          @power_word_value[power_word]
         else
           0
         end
