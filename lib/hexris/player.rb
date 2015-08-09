@@ -8,7 +8,7 @@ require_relative "../anagrammatic"
 
 module Hexris
   class Player
-    CLEAR  = "\e[2J"
+    CLEAR  = "\e[2J\e[H"
     MOVES  = %w[E W SE SW c cc]
     KEYS   = {
       "e" => "E",

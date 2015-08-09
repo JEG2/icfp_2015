@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+require_relative "../lib/hexris/solver"
+
+debug = ARGV.delete("-d")
+unless ARGV.first && File.exist?(ARGV.first)
+  abort "USAGE:  #{$PROGRAM_NAME} PROBLEM_FILE"
+end
+
+Hexris::Solver.new(ARGF.read, debug).solve
