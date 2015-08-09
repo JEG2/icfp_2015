@@ -1,11 +1,14 @@
 require_relative '../constants'
 require_relative "../hexris/problem"
 require_relative "../hexris/game"
+require_relative "../hexris/ai"
 require_relative "../anagrammatic"
+require_relative "../hexris/visualizer"
 
 module DumbBot
   class DumbBot
 
+    CLEAR  = "\e[2J"
     def initialize(json: )
       @local_power_words = POWER_WORDS + ["a"]
       @problem   = Hexris::Problem.new(json)
@@ -14,12 +17,13 @@ module DumbBot
       @power_word_value = Hash.new(300)
     end
 
-    attr_reader :problem, :game, :solutions
+    attr_reader :problem, :game, :solutions, :heat_mapper
 
     def play
       problem.seeds.each do |seed|
         @power_word_value = Hash.new(300)
         setup_game(seed)
+        @heat_mapper = Hexris::AI.new(@game)
         until game_over?
           explore_map
         end
@@ -64,19 +68,36 @@ module DumbBot
     def explore_map
       until(game.game_over?)
         word = try_words
-        if word == 'a'
-          @power_word_value['a'] = 0
+        if word == 'a' || @power_word_value[word] < 300
+          @heat_mapper.find_moves.each do |move| 
+            break if game.game_over?
+            game.make_move(move) 
+            print CLEAR
+            puts "AI"
+            puts Hexris::Visualizer.new(board: game.board, unit: game.unit).to_s
+            sleep 0.2
+
+          end
         else
-          @power_word_value[word] = @power_word_value[word] - word.length
+          @power_word_value[word] = word.length
+          apply_word(word)
         end
-        apply_word(word)
       end
     end
 
     def apply_word(word,this_game: @game)
-      pw_to_moves(word).each do |move| 
-        break if this_game.game_over?
-        this_game.make_move(move) 
+      if word == 'a'
+        p "finding"
+      else
+        pw_to_moves(word).each do |move| 
+          break if this_game.game_over?
+          this_game.make_move(move) 
+          print CLEAR
+          p @power_word_value
+          puts "PW"
+          puts Hexris::Visualizer.new(board: game.board, unit: game.unit).to_s
+          sleep 0.2
+        end
       end
     end
 
