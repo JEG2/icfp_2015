@@ -64,26 +64,26 @@ module DumbBot
     def explore_map
       until(game.game_over?)
         word = try_words
-        p "going with"
-        p word
         if word == 'a'
           @power_word_value['a'] = 0
         else
           @power_word_value[word] = @power_word_value[word] - word.length
         end
-        pw_to_moves(word).each do |move| 
-          break if game.game_over?
-          game.make_move(move) 
-        end
-
+        apply_word(word)
       end
     end
 
-    def try_words
+    def apply_word(word,this_game: @game)
+      pw_to_moves(word).each do |move| 
+        break if this_game.game_over?
+        this_game.make_move(move) 
+      end
+    end
+
+    def try_words(this_game: @game)
       @local_power_words.rotate!
       @local_power_words.max do |power_word|
-        p power_word
-        temp_game = Marshal.load(Marshal.dump(@game))
+        temp_game = Marshal.load(Marshal.dump(this_game))
         moves = pw_to_moves(power_word)
         if moves.all? do |move| 
           begin
@@ -94,13 +94,9 @@ module DumbBot
             break false
           end
         end 
-        p "power_word:"
-        p power_word
-        p "pwv:"
-        p @power_word_value[power_word]
-        p @power_word_value[power_word] + power_word.length
+        @power_word_value[power_word] + power_word.length
         else
-          p 0
+          0
         end
       end
     end
