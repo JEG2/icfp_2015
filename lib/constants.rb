@@ -1,4 +1,4 @@
-POWER_WORDS = ["vigintillion", "yoyodyne", "john bigboote", "planet 10", "ph'nglui mglw'nafh cthulhu r'lyeh wgah'nagl fhtagn.", "ia! ia! ", "yogsothoth", "cthulhu fhtagn!", "yuggoth", "blue hades", "r'lyeh", "ei!", "necronomicon"]
+POWER_WORDS = ["vigintillion", "yoyodyne", "john bigboote", "planet 10", "ph'nglui mglw'nafh cthulhu r'lyeh wgah'nagl fhtagn.", "ia! ia! ", "yogsothoth", "cthulhu fhtagn!", "yuggoth", "blue hades", "r'lyeh", "ei!", "necronomicon", "tsathoggua"]
 
 POTENTIALS  = ["ray kurzweil"] 
 
