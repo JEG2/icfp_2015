@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/dumb_bot/dumb_bot'
+
+
+DumbBot::DumbBot.new(json: ARGF.read).play
