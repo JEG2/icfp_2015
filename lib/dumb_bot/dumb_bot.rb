@@ -76,7 +76,7 @@ module DumbBot
             p @power_word_value
             puts "AI"
             puts Hexris::Visualizer.new(board: game.board, unit: game.unit).to_s
-            sleep 0.2
+            #sleep 0.2
 
           end
         else
@@ -86,39 +86,49 @@ module DumbBot
       end
     end
 
-    def apply_word(word,this_game: @game)
-      if word == 'a'
-        p "finding"
-      else
-        pw_to_moves(word).each do |move| 
-          break if this_game.game_over?
-          this_game.make_move(move) 
-          print CLEAR
-          p @power_word_value
-          puts "PW #{word}"
-          puts Hexris::Visualizer.new(board: game.board, unit: game.unit).to_s
-          sleep 0.2
+    def apply_word(word)
+      pw_to_moves(word).each do |move| 
+        break if game.game_over?
+        game.make_move(move) 
+        print CLEAR
+        p @power_word_value
+        puts "PW #{word} #{move}"
+        puts Hexris::Visualizer.new(board: game.board, unit: game.unit).to_s
+        #sleep 0.2
+      end
+    end
+
+    def moves_successful?(moves)
+      temp_game = Marshal.load(Marshal.dump(@game))
+      moves.all? do |move| 
+        begin
+          break false if temp_game.game_over?
+          temp_game.make_move(move)
+          true
+        rescue
+          break false
         end
+      end 
+    end
+
+    def locks?(moves)
+      temp_game = Marshal.load(Marshal.dump(@game))
+      moves.any? do |move|
+        temp_game.make_move(move)
+        break false if temp_game.game_over?
+        temp_game.unit.locked?
       end
     end
 
     def try_words(this_game: @game)
-      @local_power_words.rotate!
-      @local_power_words.max do |power_word|
-        temp_game = Marshal.load(Marshal.dump(@game))
+      @local_power_words.max_by do |power_word|
+        @power_word_value['a'] = 0
         moves = pw_to_moves(power_word)
-        locked_count = 1
-        if moves.all? do |move| 
-          begin
-            break false if temp_game.game_over?
-            temp_game.make_move(move)
-            locked_count =  0 if temp_game.unit.locked?
-            true
-          rescue
-            break false
-          end
-        end 
-        @power_word_value[power_word] = 300 * locked_count + power_word.length
+        if moves_successful?(moves)
+          no_lock_modifier = 0 #locks?(moves) ? 0 : 300
+          p power_word
+          p no_lock_modifier
+          p @power_word_value[power_word] =  @power_word_value[power_word] + power_word.length + no_lock_modifier
         else
           0
         end
