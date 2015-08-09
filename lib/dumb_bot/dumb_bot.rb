@@ -105,7 +105,7 @@ module DumbBot
     def try_words(this_game: @game)
       @local_power_words.rotate!
       @local_power_words.max do |power_word|
-        temp_game = Marshal.load(Marshal.dump(this_game))
+        temp_game = Marshal.load(Marshal.dump(@game))
         moves = pw_to_moves(power_word)
         locked_count = 1
         if moves.all? do |move| 
@@ -118,7 +118,7 @@ module DumbBot
             break false
           end
         end 
-        @power_word_value[power_word] = 300 * locked_count + power_word.length
+        @power_word_value[power_word] + power_word.length + 300 * locked_count
         else
           0
         end
