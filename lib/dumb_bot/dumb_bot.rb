@@ -95,7 +95,7 @@ module DumbBot
           this_game.make_move(move) 
           print CLEAR
           p @power_word_value
-          puts "PW"
+          puts "PW #{word}"
           puts Hexris::Visualizer.new(board: game.board, unit: game.unit).to_s
           sleep 0.2
         end
@@ -118,7 +118,7 @@ module DumbBot
             break false
           end
         end 
-        @power_word_value[power_word] + power_word.length + 300 * locked_count
+        @power_word_value[power_word] = 300 * locked_count + power_word.length
         else
           0
         end
