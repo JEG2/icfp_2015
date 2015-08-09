@@ -1,6 +1,6 @@
 module Hexris
   class AI
-    MOVES = %w[E W SW SE c cc]
+    MOVES = %w[E W SW SE]
 
     def initialize(game)
       @game          = game
@@ -76,30 +76,51 @@ module Hexris
     end
 
     def clear_lines
-      unit  = game.unit.dup
-      moves = [ ]
-      loop do
-        best_score = unit.size * default_score
-        scored     = { }
-        MOVES.each do |move|
-          begin
-            new_unit = unit.dup
-            new_unit.move_or_rotate(move)
-            scored[move] = score_move(new_unit)
-            if scored[move] < best_score
-              best_score = scored[move]
+      unit      = game.unit.dup
+      max_turns = unit.max_turns
+      q         = [{unit: unit, moves: [ ]}]
+      results   = [ ]
+
+      while (orientation = q.pop)
+        moves      = orientation[:moves]
+        did_rotate = false
+        loop do
+          if !did_rotate && max_turns > 0
+            rotated = orientation[:unit].dup
+            rotated.rotate("c")
+            unless rotated.locked?
+              q         << {unit: rotated, moves: moves.dup + ["c"]}
+              did_rotate = true
+              max_turns -= 1
             end
-          rescue
-            scored[move] = 0
+          end
+
+          best_score = orientation[:unit].size * default_score
+          scored     = { }
+          MOVES.each do |move|
+            begin
+              new_unit = orientation[:unit].dup
+              new_unit.move_or_rotate(move)
+              scored[move] = score_move(new_unit)
+              if scored[move] < best_score
+                best_score = scored[move]
+              end
+            rescue
+              scored[move] = 0
+            end
+          end
+          final_move, final_score =
+            scored.find { |_, score| score == best_score }
+          orientation[:unit].move(final_move)
+          moves << final_move
+          if orientation[:unit].locked?
+            results << {moves: moves, score: final_score}
+            break
           end
         end
-        move, _ = scored.find { |_, score| score == best_score }
-        unit.move_or_rotate(move)
-        moves << move
-        if unit.locked?
-          return moves
-        end
       end
+
+      results.min_by { |result| result[:score] }[:moves]
     end
 
     def score_move(unit)

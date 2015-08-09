@@ -24,6 +24,10 @@ module Hexris
     attr_reader :cells
     private     :cells
 
+    def on?(xyz)
+      cells.include?(xyz)
+    end
+
     def [](xyz)
       cells[xyz]
     end
