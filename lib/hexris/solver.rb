@@ -61,7 +61,7 @@ module Hexris
       solutions << {
         "problemId" => problem.id,
         "seed"      => game.seed,
-        "tag"       => "manual:#{problem.id}:#{game.seed}:#{game.score.total}",
+        "tag"       => "solver:#{problem.id}:#{game.seed}:#{game.score.total}",
         "solution"  => Anagrammatic::Translator.new(
           game.moves
         ).submittable_string

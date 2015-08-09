@@ -46,7 +46,7 @@ module Hexris
       game.board.height.times do |y|
         game.board.width.times do |x|
           xyz           = Coordinates.offset_to_cube(x, y)
-          heat_map[xyz] = (middle_x - x).abs + y * 2
+          heat_map[xyz] = (middle_x - x).abs + y * 10
         end
       end
     end
