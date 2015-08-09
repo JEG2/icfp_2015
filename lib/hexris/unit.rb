@@ -6,26 +6,27 @@ module Hexris
       x_size              = highest_x - lowest_x + 1
       x_offset            = (board.width - x_size) / 2
 
-      @members = initial_members.map { |member|
+      @members   = initial_members.map { |member|
         Coordinates.offset_to_cube(
           member["x"] + x_offset,
           member["y"] + y_offset
         )
       }
-      @pivot   = Coordinates.offset_to_cube(
+      @pivot     = Coordinates.offset_to_cube(
         initial_pivot["x"] + x_offset,
         initial_pivot["y"] + y_offset
       )
-      @board   = board
-      @locked  = false
-      @memory  = [[members.sort + [pivot]]]
+      @max_turns = calculate_max_turns(initial_members, initial_pivot)
+      @board     = board
+      @locked    = false
+      @memory    = [[members.sort + [pivot]]]
     end
 
     def initialize_copy(other)
       @memory = @memory.dup
     end
 
-    attr_reader :members
+    attr_reader :members, :max_turns
 
     attr_reader :pivot, :board, :memory
     private     :pivot, :board, :memory
@@ -68,8 +69,8 @@ module Hexris
       case direction
       when "E"  then try_move(1, -1, 0)
       when "W"  then try_move(-1, 1, 0)
-      when "SE" then try_move(0, -1, 1, clear_memory: true)
-      when "SW" then try_move(-1, 0, 1, clear_memory: true)
+      when "SE" then try_move(0, -1, 1)
+      when "SW" then try_move(-1, 0, 1)
       end
     end
 
@@ -82,7 +83,7 @@ module Hexris
 
     private
 
-    def try_move(x_offset, y_offset, z_offset, clear_memory: false)
+    def try_move(x_offset, y_offset, z_offset)
       new_members  = members.map { |x, y, z|
         [x + x_offset, y + y_offset, z + z_offset]
       }
@@ -93,9 +94,6 @@ module Hexris
       if valid?(check: new_members)
         @members = new_members
         @pivot   = new_pivot
-        if clear_memory
-          @memory.clear
-        end
         @memory << new_position
       else
         @locked = true
@@ -121,6 +119,22 @@ module Hexris
       else
         @locked = true
       end
+    end
+
+    def calculate_max_turns(members, pivot)
+      cube_pivot      = Coordinates.offset_to_cube(pivot["x"], pivot["y"])
+      origin_members  = members.map { |member|
+        xyz = Coordinates.offset_to_cube(member["x"], member["y"])
+        [xyz[0] - cube_pivot[0], xyz[1] - cube_pivot[1], xyz[2] - cube_pivot[2]]
+      }
+      turns           = 0
+      current_members = origin_members.dup
+      loop do
+        current_members = current_members.map { |x, y, z| [-z, -x, -y] }
+        break if current_members.sort == origin_members.sort
+        turns += 1
+      end
+      turns
     end
   end
 end
