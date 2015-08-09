@@ -73,6 +73,7 @@ module DumbBot
             break if game.game_over?
             game.make_move(move) 
             print CLEAR
+            p @power_word_value
             puts "AI"
             puts Hexris::Visualizer.new(board: game.board, unit: game.unit).to_s
             sleep 0.2
@@ -106,16 +107,18 @@ module DumbBot
       @local_power_words.max do |power_word|
         temp_game = Marshal.load(Marshal.dump(this_game))
         moves = pw_to_moves(power_word)
+        locked_count = 1
         if moves.all? do |move| 
           begin
             break false if temp_game.game_over?
             temp_game.make_move(move)
+            locked_count =  0 if temp_game.unit.locked?
             true
           rescue
             break false
           end
         end 
-        @power_word_value[power_word] + power_word.length
+        @power_word_value[power_word] = 300 * locked_count + power_word.length
         else
           0
         end
