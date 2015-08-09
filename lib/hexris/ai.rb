@@ -4,7 +4,7 @@ module Hexris
 
     def initialize(game)
       @game          = game
-      @default_score = game.board.width * game.board.height
+      @default_score = game.board.height * 6 + 6
       @heat_map      = Hash.new(default_score)
     end
 
@@ -12,35 +12,50 @@ module Hexris
     private     :game, :default_score, :heat_map
 
     def find_moves
-      if board_empty?
-        lock_a_unit
-      else
-        build_heat_map
-        clear_lines
-      end
+      build_heat_map
+      clear_lines
     end
 
     private
 
     def build_heat_map
       heat_map.clear
+      build_edges_heat_map
+      # show_heat_map
+    end
 
+    def build_row_density_heap_map
+      if board_empty?
+        radiate(0, game.board.height, -1)
+      else
+        game.board.height.times do |y|
+          game.board.width.times do |x|
+            xyz = Coordinates.offset_to_cube(x, y)
+
+            next if game.board[xyz]
+
+            score = score_cell(x, y)
+            radiate(x, y, score)
+          end
+        end
+      end
+    end
+
+    def build_edges_heat_map
       game.board.height.times do |y|
         game.board.width.times do |x|
           xyz = Coordinates.offset_to_cube(x, y)
 
           next if game.board[xyz]
 
-          score = score_cell(x, y)
+          score = neighbors(x, y).size + (game.board.height - (y + 1)) * 6
           radiate(x, y, score)
         end
       end
-
-      # show_heat_map
     end
 
     def score_cell(x, y)
-      default_score - game.board.row(y).count(&:itself) * game.board.height
+      default_score - game.board.row(y).count(&:itself) * game.board.height - 1
     end
 
     def radiate(x, y, score)
@@ -75,18 +90,6 @@ module Hexris
 
     def board_empty?
       game.board.rows.flatten.none?
-    end
-
-    def lock_a_unit
-      unit  = game.unit.dup
-      moves = [ ]
-      loop do
-        unit.move_or_rotate("SW")
-        moves << "SW"
-        if unit.locked?
-          return moves
-        end
-      end
     end
 
     def clear_lines
@@ -124,7 +127,7 @@ module Hexris
       puts Array.new(game.board.height) { |y|
         (y.odd? ? " " : "") + Array.new(game.board.width) { |x|
           xyz = Coordinates.offset_to_cube(x, y)
-          heat_map[xyz].to_s(36)
+          heat_map[xyz].to_s.center(4)
         }.join(" ")
       }.join("\n")
       $stdin.gets
