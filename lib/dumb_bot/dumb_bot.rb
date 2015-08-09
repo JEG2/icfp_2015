@@ -11,12 +11,14 @@ module DumbBot
       @problem   = Hexris::Problem.new(json)
       @game      = nil
       @solutions = [ ]
+      @power_word_value = Hash.new(300)
     end
 
     attr_reader :problem, :game, :solutions
 
     def play
       problem.seeds.each do |seed|
+        @power_word_value = Hash.new(300)
         setup_game(seed)
         until game_over?
           explore_map
@@ -62,6 +64,13 @@ module DumbBot
     def explore_map
       until(game.game_over?)
         word = try_words
+        p "going with"
+        p word
+        if word == 'a'
+          @power_word_value['a'] = 0
+        else
+          @power_word_value[word] = @power_word_value[word] - word.length
+        end
         pw_to_moves(word).each do |move| 
           break if game.game_over?
           game.make_move(move) 
@@ -73,6 +82,7 @@ module DumbBot
     def try_words
       @local_power_words.rotate!
       @local_power_words.max do |power_word|
+        p power_word
         temp_game = Marshal.load(Marshal.dump(@game))
         moves = pw_to_moves(power_word)
         if moves.all? do |move| 
@@ -81,12 +91,16 @@ module DumbBot
             temp_game.make_move(move)
             true
           rescue
-            false
+            break false
           end
         end 
-        temp_game.score.total + power_word.length
+        p "power_word:"
+        p power_word
+        p "pwv:"
+        p @power_word_value[power_word]
+        p @power_word_value[power_word] + power_word.length
         else
-          0
+          p 0
         end
       end
     end
