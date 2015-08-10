@@ -65,7 +65,7 @@ module DumbBot
       @game = Hexris::Game.new(
         problem: problem,
         seed:    seed,
-        phrases: @local_power_words
+        phrases: POWER_WORDS
       )
     end
 
