@@ -11,6 +11,7 @@ module DumbBot
     CLEAR  = "\e[2J"
     def initialize(json:, pw: POWER_WORDS)
       @local_power_words    = pw + ["a"]
+      @pw                   = pw
       @problem              = Hexris::Problem.new(json)
       @game                 = nil
       @solutions            = [ ]
@@ -37,7 +38,7 @@ module DumbBot
     end
 
     def record_solution
-      commands = Anagrammatic::Translator.new(game.moves).submittable_string
+      commands = Anagrammatic::Translator.new(game.moves).submittable_string(@pw)
       game.score.score_phrase(commands)
       solutions << {
         "problemId" => problem.id,
@@ -50,11 +51,11 @@ module DumbBot
     def show_solutions
       json = JSON.generate(solutions)
 
-      puts
-      puts "Solutions:"
-      puts
-      puts json
-
+      # puts
+      # puts "Solutions:"
+      # puts
+      # puts json
+      # 
       File.write(
         File.join(__dir__, *%W[.. .. solutions #{problem.id}.json]),
         json
@@ -65,7 +66,7 @@ module DumbBot
       @game = Hexris::Game.new(
         problem: problem,
         seed:    seed,
-        phrases: POWER_WORDS
+        phrases: @pw
       )
     end
 
@@ -80,10 +81,10 @@ module DumbBot
           @heat_mapper.find_moves.each do |move| 
             break if game.game_over?
             game.make_move(move) 
-            print CLEAR
-            p @power_word_value
-            puts "AI"
-            puts Hexris::Visualizer.new(board: game.board, unit: game.unit).to_s
+            # print CLEAR
+            # p @power_word_value
+            # puts "AI"
+            # puts Hexris::Visualizer.new(board: game.board, unit: game.unit).to_s
             #sleep 0.2
 
           end
@@ -99,11 +100,11 @@ module DumbBot
       pw_to_moves(word).each do |move| 
         break if game.game_over?
         game.make_move(move) 
-        print CLEAR
-        p @power_word_value
-        puts "PW #{word} #{move}"
-        puts Hexris::Visualizer.new(board: game.board, unit: game.unit).to_s
-        #sleep 0.2
+        # print CLEAR
+        # p @power_word_value
+        # puts "PW #{word} #{move}"
+        # puts Hexris::Visualizer.new(board: game.board, unit: game.unit).to_s
+        # #sleep 0.2
       end
     end
 

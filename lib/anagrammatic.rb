@@ -4,11 +4,9 @@ require_relative 'constants'
 
 module Anagrammatic
 
-  PHRASES = POWER_WORDS
-    .map { |phrase| Phrase.new(phrase) }
-
-  def self.interpolate_powerphrases!(string)
-    PHRASES.each { |phrase| phrase.interpolate(string) }
+  def self.interpolate_powerphrases!(string, power_phrases)
+    phrases = power_phrases.map { |phrase| Phrase.new(phrase) }
+    phrases.each { |phrase| phrase.interpolate(string) }
     string
   end
 

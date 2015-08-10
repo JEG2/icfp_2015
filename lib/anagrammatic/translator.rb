@@ -17,8 +17,8 @@ module Anagrammatic
       @commands = commands
     end
 
-    def submittable_string
-      Anagrammatic.interpolate_powerphrases!(default_translation)
+    def submittable_string(power_phrases = POWER_WORDS)
+      Anagrammatic.interpolate_powerphrases!(default_translation, power_phrases)
     end
 
     def default_translation

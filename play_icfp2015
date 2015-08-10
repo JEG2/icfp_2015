@@ -1,0 +1,33 @@
+#!/usr/bin/env ruby
+
+fail "Requires Ruby 2.2.2" unless RUBY_VERSION == "2.2.2"
+
+SUMITTED_PHRASES = nil
+require_relative "lib/dumb_bot/dumb_bot"
+
+power_phrases = [ ]
+problems      = [ ]
+solutions     = [ ]
+
+while (i = ARGV.index("-p"))
+  ARGV.delete_at(i)
+  power_phrases << ARGV.delete_at(i)
+end
+
+while (i = ARGV.index("-f"))
+  ARGV.delete_at(i)
+  problems << ARGV.delete_at(i)
+end
+
+problems.each do |problem|
+  options = {
+    json: File.open(problem, "r"){ |f| f.read },
+  }
+  options.merge!(pw: power_phrases) if power_phrases.any?
+
+  dumbo = DumbBot::DumbBot.new(options)
+  dumbo.play
+  solutions << dumbo.solutions
+end
+
+puts JSON.generate(solutions)
