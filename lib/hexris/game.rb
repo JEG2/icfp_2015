@@ -5,13 +5,13 @@ require_relative "scorer"
 
 module Hexris
   class Game
-    def initialize(problem: , seed: )
+    def initialize(problem: , seed: , phrases: nil)
       @problem     = problem
       @seed        = seed
       @rng         = RNG.new(seed)
       @game_over   = false
       @pieces_left = problem.source_limit
-      @score       = Scorer.new
+      @score       = Scorer.new(power_words: phrases)
       @board       = Honeycomb.new(problem.board)
       @unit        = nil
       @moves       = [ ]

@@ -37,13 +37,13 @@ module DumbBot
     end
 
     def record_solution
+      commands = Anagrammatic::Translator.new(game.moves).submittable_string
+      game.score.score_phrase(commands)
       solutions << {
         "problemId" => problem.id,
         "seed"      => game.seed,
         "tag"       => "manual:#{problem.id}:#{game.seed}:#{game.score.total}",
-        "solution"  => Anagrammatic::Translator.new(
-          game.moves
-        ).submittable_string
+        "solution"  => commands
       }
     end
 
@@ -62,7 +62,11 @@ module DumbBot
     end
 
     def setup_game(seed)
-      @game = Hexris::Game.new(problem: problem, seed: seed)
+      @game = Hexris::Game.new(
+        problem: problem,
+        seed:    seed,
+        phrases: @local_power_words
+      )
     end
 
     def game_over?
