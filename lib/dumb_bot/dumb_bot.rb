@@ -71,7 +71,7 @@ module DumbBot
     def explore_map
       until(game.game_over?)
         word = try_words
-        if word == 'a' || @power_word_value[word] < 300
+        if word == 'a' || @power_word_value[word] > 300
           @heat_mapper.find_moves.each do |move| 
             break if game.game_over?
             game.make_move(move) 
