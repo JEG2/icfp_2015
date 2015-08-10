@@ -87,11 +87,15 @@ module Hexris
         loop do
           if !did_rotate && max_turns > 0
             rotated = orientation[:unit].dup
-            rotated.rotate("c")
-            unless rotated.locked?
-              q         << {unit: rotated, moves: moves.dup + ["c"]}
-              did_rotate = true
-              max_turns -= 1
+            begin
+              rotated.rotate("c")
+              unless rotated.locked?
+                q         << {unit: rotated, moves: moves.dup + ["c"]}
+                did_rotate = true
+                max_turns -= 1
+              end
+            rescue
+              # do nothing: we were given a turned unit
             end
           end
 

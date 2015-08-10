@@ -10,22 +10,22 @@ module DumbBot
 
     CLEAR  = "\e[2J"
     def initialize(json:, pw: POWER_WORDS)
-      @local_power_words = pw + ["a"]
-      @problem   = Hexris::Problem.new(json)
-      @game      = nil
-      @solutions = [ ]
-      @power_word_used = Hash.new(false)
+      @local_power_words    = pw + ["a"]
+      @problem              = Hexris::Problem.new(json)
+      @game                 = nil
+      @solutions            = [ ]
+      @power_word_used      = Hash.new(false)
       @power_word_used['a'] = true
-      @power_word_value = Hash.new(300)
+      @power_word_value     = Hash.new(300)
     end
 
     attr_reader :problem, :game, :solutions, :heat_mapper
 
     def play
       problem.seeds.each do |seed|
-        @power_word_used = Hash.new(false)
+        @power_word_used      = Hash.new(false)
         @power_word_used['a'] = true
-        @power_word_value = Hash.new(300)
+        @power_word_value     = Hash.new(300)
         setup_game(seed)
         @heat_mapper = Hexris::AI.new(@game)
         until game_over?
@@ -42,7 +42,7 @@ module DumbBot
       solutions << {
         "problemId" => problem.id,
         "seed"      => game.seed,
-        "tag"       => "manual:#{problem.id}:#{game.seed}:#{game.score.total}",
+        "tag"       => "combo:#{problem.id}:#{game.seed}:#{game.score.total}",
         "solution"  => commands
       }
     end
@@ -74,7 +74,7 @@ module DumbBot
     end
 
     def explore_map
-      until(game.game_over?)
+      until game.game_over?
         word = try_words
         if word == 'a' || @power_word_value[word] < 300
           @heat_mapper.find_moves.each do |move| 
