@@ -25,6 +25,7 @@ module DumbBot
       problem.seeds.each do |seed|
         @power_word_used = Hash.new(false)
         @power_word_used['a'] = true
+        @power_word_value = Hash.new(300)
         setup_game(seed)
         @heat_mapper = Hexris::AI.new(@game)
         until game_over?
